@@ -1,0 +1,30 @@
+#include <stdio.h>
+
+// Funcție pentru a găsi maximul dintre două numere
+int max(int a, int b) { return (a > b) ? a : b; }
+
+int main() {
+    int n = 5; // Numărul de obiecte
+    int W = 15; // Capacitatea maximă a rucsacului
+    
+    int values[] = {4, 2, 2, 1, 10};
+    int weights[] = {12, 1, 2, 1, 4};
+    
+    int dp[6][16]; // Matricea DP de dimensiune (n+1) x (W+1)
+
+    // Construirea tabelului DP de jos în sus
+    for (int i = 0; i <= n; i++) {
+        for (int w = 0; w <= W; w++) {
+            if (i == 0 || w == 0) {
+                dp[i][w] = 0;
+            } else if (weights[i - 1] <= w) {
+                dp[i][w] = max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+            } else {
+                dp[i][w] = dp[i - 1][w];
+            }
+        }
+    }
+
+    printf("Valoarea maxima care poate fi atinsa este: $%d\n", dp[n][W]);
+    return 0;
+}
