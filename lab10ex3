@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+
+#define ROWS 5
+#define COLS 6
+
+typedef struct {
+    int x, y;
+} Point;
+
+typedef struct {
+    Point parent;
+    int f, g, h;
+    bool isObstacle;
+    bool closed;
+    bool opened;
+} Node;
+
+// Funcție euristică: distanța Manhattan
+int heuristic(Point src, Point dest) {
+    return abs(src.x - dest.x) + abs(src.y - dest.y);
+}
+
+bool isValid(int r, int c) {
+    return (r >= 0 && r < ROWS && c >= 0 && c < COLS);
+}
+
+void solveAStar() {
+    Node grid[ROWS][COLS];
+    
+    // Inițializare grid din imagine (0 = liber, 1 = obstacol roșu)
+    int map[ROWS][COLS] = {
+        {0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 1, 0, 0},
+        {0, 1, 0, 0, 1, 0},
+        {0, 0, 0, 0, 1, 0} // 'End' este la (4,5)
+    };
+
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            grid[i][j].isObstacle = (map[i][j] == 1);
+            grid[i][j].closed = false;
+            grid[i][j].opened = false;
+            grid[i][j].f = 1e9;
+            grid[i][j].g = 1e9;
+        }
+    }
+
+    Point start = {0, 0};
+    Point end = {4, 5};
+
+    grid[start.x][start.y].g = 0;
+    grid[start.x][start.y].h = heuristic(start, end);
+    grid[start.x][start.y].f = grid[start.x][start.y].h;
+    grid[start.x][start.y].opened = true;
+    grid[start.x][start.y].parent = start;
+
+    // Direcții de mișcare: Sus, Jos, Stânga, Dreapta
+    int dr[] = {-1, 1, 0, 0};
+    int dc[] = {0, 0, -1, 1};
+
+    bool foundDest = false;
+
+    while (true) {
+        // Găsim nodul deschis cu 'f' minim
+        int minF = 1e9;
+        Point curr = {-1, -1};
+
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                if (grid[i][j].opened && !grid[i][j].closed && grid[i][j].f < minF) {
+                    minF = grid[i][j].f;
+                    curr.x = i;
+                    curr.y = j;
+                }
+            }
+        }
+
+        if (curr.x == -1) break; // Nu mai avem noduri de explorat
+
+        grid[curr.x][curr.y].closed = true;
+
+        if (curr.x == end.x && curr.y == end.y) {
+            foundDest = true;
+            break;
+        }
+
+        // Explorăm vecinii
+        for (int i = 0; i < 4; i++) {
+            int newR = curr.x + dr[i];
+            int newC = curr.y + dc[i];
+
+            if (isValid(newR, newC) && !grid[newR][newC].isObstacle && !grid[newR][newC].closed) {
+                int newG = grid[curr.x][curr.y].g + 1;
+                int newH = heuristic((Point){newR, newC}, end);
+                int newF = newG + newH;
+
+                if (newF < grid[newR][newC].f) {
+                    grid[newR][newC].g = newG;
+                    grid[newR][newC].h = newH;
+                    grid[newR][newC].f = newF;
+                    grid[newR][newC].parent = curr;
+                    grid[newR][newC].opened = true;
+                }
+            }
+        }
+    }
+
+    if (foundDest) {
+        printf("Drumul gasit de A* (de la End inapoi la Start):\n");
+        Point p = end;
+        while (!(p.x == start.x && p.y == start.y)) {
+            printf("(%d, %d) <- ", p.x, p.y);
+            p = grid[p.x][p.y].parent;
+        }
+        printf("(%d, %d)\n", start.x, start.y);
+    } else {
+        printf("Nu s-a putut gasi un drum către destinație.\n");
+    }
+}
+
+int main() {
+    solveAStar();
+    return 0;
+}
