@@ -1,1 +1,0 @@
-# laborator-10
