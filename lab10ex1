@@ -1,0 +1,60 @@
+#include <stdio.h>
+
+// Funcție pentru a transforma un subarbore cu rădăcina în nodul 'i' într-un Max-Heap
+void heapify(int arr[], int n, int i) {
+    int largest = i;       // Inițializăm cel mai mare element ca fiind rădăcina
+    int left = 2 * i + 1;  // Fiu stânga
+    int right = 2 * i + 2; // Fiu dreapta
+
+    // Dacă fiul stâng este mai mare decât rădăcina
+    if (left < n && arr[left] > arr[largest])
+        largest = left;
+
+    // Dacă fiul drept este mai mare decât cel mai mare de până acum
+    if (right < n && arr[right] > arr[largest])
+        largest = right;
+
+    // Dacă cel mai mare nu este rădăcina, le inversăm și continuăm procesul în jos
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+
+        // Re-aplicăm heapify pentru subarborele afectat
+        heapify(arr, n, largest);
+    }
+}
+
+// Funcția principală de Heap Sort
+void heapSort(int arr[], int n) {
+    // Construim Max-Heap-ul (rearanjăm vectorul)
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+
+    // Extragem pe rând elementele din heap
+    for (int i = n - 1; i > 0; i--) {
+        // Mutăm rădăcina curentă (cel mai mare element) la sfârșit
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+
+        // Apelăm heapify pe heap-ul redus
+        heapify(arr, i, 0);
+    }
+}
+
+int main() {
+    int arr[] = {12, 11, 13, 5, 6, 7};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    printf("Vectorul initial:\n");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    
+    heapSort(arr, n);
+
+    printf("\nVectorul sortat prin Heap Sort:\n");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    return 0;
+}
