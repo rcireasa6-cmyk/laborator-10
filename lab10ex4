@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TABLE_SIZE 10
+
+// Structura pentru un nod din listă (pereche cheie-valoare)
+typedef struct Node {
+    char key[50];
+    char value[100];
+    struct Node* next;
+} Node;
+
+Node* hashTable[TABLE_SIZE];
+
+// Funcția de hashing simplă (suma caracterelor modulo TABLE_SIZE)
+int hashFunction(char* key) {
+    int sum = 0;
+    for (int i = 0; key[i] != '\0'; i++) {
+        sum += key[i];
+    }
+    return sum % TABLE_SIZE;
+}
+
+// 1. Adăugare cuvânt (Insert)
+void insert(char* key, char* value) {
+    int index = hashFunction(key);
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->key, key);
+    strcpy(newNode->value, value);
+    newNode->next = hashTable[index];
+    hashTable[index] = newNode;
+    printf("Cuvantul '%s' a fost adaugat cu succes.\n", key);
+}
+
+// 2. Căutare definiție (Search)
+char* search(char* key) {
+    int index = hashFunction(key);
+    Node* temp = hashTable[index];
+    while (temp != NULL) {
+        if (strcmp(temp->key, key) == 0) {
+            return temp->value;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+// 3. Ștergere cuvânt (Delete)
+void deleteKey(char* key) {
+    int index = hashFunction(key);
+    Node* temp = hashTable[index];
+    Node* prev = NULL;
+
+    while (temp != NULL && strcmp(temp->key, key) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == NULL) {
+        printf("Cuvantul '%s' nu a fost gasit pentru a fi sters.\n", key);
+        return;
+    }
+
+    if (prev == NULL) {
+        hashTable[index] = temp->next;
+    } else {
+        prev->next = temp->next;
+    }
+
+    free(temp);
+    printf("Cuvantul '%s' a fost sters.\n", key);
+}
+
+int main() {
+    // Inițializăm tabela cu NULL
+    for (int i = 0; i < TABLE_SIZE; i++) hashTable[i] = NULL;
+
+    // Testăm operațiile cerute
+    insert("programare", "Activitatea de a scrie cod sursa.");
+    insert("calculator", "Dispozitiv electronic de procesare a datelor.");
+
+    printf("\n--- Cautare ---\n");
+    char* def = search("programare");
+    if (def) printf("Definitie 'programare': %s\n", def);
+    else printf("Cuvantul nu exista.\n");
+
+    printf("\n--- Stergere ---\n");
+    deleteKey("programare");
+
+    printf("\n--- Cautare dupa stergere ---\n");
+    def = search("programare");
+    if (def) printf("Definitie: %s\n", def);
+    else printf("Cuvantul 'programare' nu a mai fost gasit.\n");
+
+    return 0;
+}
